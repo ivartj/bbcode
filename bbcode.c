@@ -126,7 +126,7 @@ int xprintf(px *x, const char *fmt, ...)
 	va_start(ap, fmt);
 	va_copy(apcpy, ap);
 	size = vsnprintf(NULL, 0, fmt, ap);
-	va_end(apcpy);
+	va_end(ap);
 
 	str = malloc(size + 1);
 	vsnprintf(str, size + 1, fmt, apcpy);
@@ -410,7 +410,7 @@ int printhtmltext(px *x, bbcode *bb)
 			n += xprintf(x, "&lt;");
 			break;
 		case '>':
-			n += xprintf(x, "&lt;");
+			n += xprintf(x, "&gt;");
 			break;
 		default:
 			n += xputc(x, c);
