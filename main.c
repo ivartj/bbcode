@@ -76,7 +76,7 @@ void parse(void)
 
 void print(void)
 {
-	bbcode_print_html(bbcode_fwrite, stdout, m);
+	bbcode_print(m, bbcode_fwrite, stdout);
 }
 
 int main(int argc, char *argv[])
