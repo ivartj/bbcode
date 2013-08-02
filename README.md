@@ -1,14 +1,35 @@
-bbcode
+bbcode (unfinished)
 ======
 
 C implementation of the BBCode markup used on many web forums. It only produces HTML.
 
+Installation
+------------
+
+    git clone https://github.com/ivartj/bbcode
+    cd bbcode
+    autoreconf --install
+    ./configure
+    make all install clean
+
+Usage
+-----
+
+    $ ed
+    i
+    This is [i]BBCode[/i].
+    .
+    wq file.txt
+    $ bbcode file.txt
+    This is <em>BBCode</em>.<br />
+
+It also reads standard input if no file is given.
 
 Why?
 ----
 
+ * Nostalgia
  * It's a programming exercise
- * I'm nostalgic for BBCode
  * Markdown isn't any good for poetry (without adjustments)
 
 
