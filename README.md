@@ -32,9 +32,10 @@ Why?
  * It's a programming exercise
  * Markdown isn't any good for poetry (without adjustments)
 
-
-SPEC
+Spec
 ----
+
+(not all of this is implemented yet)
 
 BBCodes have the following anatomies:
 
