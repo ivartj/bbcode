@@ -21,15 +21,17 @@ struct _bbcode_doc {
 	size_t len;
 	size_t cap;
 	bbcode **els;
+	char *src;
+	size_t srclen;
 };
 
 struct _bbcode {
 	bbcode_type *type;
 	int stop;
 	int match;
-	char *src;
+	size_t srcoff;
 	size_t srclen;
-	char *param;
+	size_t paramoff;
 	size_t paramlen;
 };
 
@@ -72,7 +74,7 @@ static int printhtml(px *x);
 static void addbb(bbcode_doc *doc, bbcode *bb);
 static void addtag(bbcode_doc *doc, bbcode *bb);
 static void addtext(bbcode_doc *doc, char *text, size_t len);
-static bbcode *parsetag(char *text, size_t len);
+static bbcode *parsetag(rx *x, char *text, size_t len);
 static void findmatch(bbcode_doc *doc, bbcode *bb);
 static int printhtmltext(px *x, bbcode *bb);
 static int printhtmltag(px *x, bbcode *bb);
@@ -157,9 +159,11 @@ int xgetc(rx *x)
 		else
 			x->cap *= 2;
 		x->buf = realloc(x->buf, x->cap);
+		x->doc->src = x->buf;
 	}
 
 	x->buf[x->len++] = c;
+	x->doc->srclen = x->len;
 
 	return c;
 }
@@ -196,7 +200,7 @@ void parsebb(rx *x)
 	case ']':
 		if(ti < 0)
 			break;
-		bb = parsetag(x->buf + ti, x->len - ti);
+		bb = parsetag(x, x->buf + ti, x->len - ti);
 		if(bb == NULL)
 			break;
 		addtext(x->doc, x->buf + i, ti - i);
@@ -262,13 +266,13 @@ void addtext(bbcode_doc *doc, char *text, size_t len)
 
 	bb = calloc(1, sizeof(bbcode));
 	bb->type = BBCODE_TEXT;
-	bb->src = text;
+	bb->srcoff = text - doc->src;
 	bb->srclen = len;
 
 	addbb(doc, bb);
 }
 
-bbcode *parsetag(char *text, size_t len)
+bbcode *parsetag(rx *x, char *text, size_t len)
 {
 	int i;
 	char *name;
@@ -312,11 +316,11 @@ bbcode *parsetag(char *text, size_t len)
 
 	bb = calloc(1, sizeof(bbcode));
 	bb->type = type;
-	bb->src = text;
+	bb->srcoff = text - x->doc->src;
 	bb->srclen = len;
 	bb->stop = stop;
 	if(param) {
-		bb->param = text + 1 + type->namelen + 1;
+		bb->paramoff = text - x->buf + 1 + type->namelen + 1;
 		bb->paramlen = len - 3 - type->namelen;
 	}
 
@@ -388,11 +392,13 @@ int printhtmltext(px *x, bbcode *bb)
 	int i;
 	char c;
 	int n;
+	char *src;
 
 	n = 0;
+	src = x->doc->src + bb->srcoff;
 
 	for(i = 0; i < bb->srclen; i++) {
-		c = bb->src[i];
+		c = src[i];
 		switch(c) {
 		case '\n':
 			n += xprintf(x, "<br />\n");
@@ -577,13 +583,13 @@ int printhtmlurl(px *x, bbcode *bb)
 	if(bb->stop)
 		return xprintf(x, "</a>");
 
-	if(bb->param == NULL)
+	if(bb->paramlen == 0)
 		return xprintf(x, "<a href=\"#\">");
 
 	n = 0;
 
 	n += xprintf(x, "<a href=\"");
-	n += printhtmlattribute(x, bb->param, bb->paramlen);
+	n += printhtmlattribute(x, x->doc->src + bb->paramoff, bb->paramlen);
 	n += xprintf(x, "\">");
 
 	return n;
