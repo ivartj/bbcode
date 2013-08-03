@@ -602,6 +602,7 @@ void bbcode_doc_destroy(bbcode_doc *doc)
 	for(i = 0; i < doc->len; i++)
 		free(doc->els[i]);
 
+	free(doc->els);
 	free(doc->src);
 	free(doc);
 }
