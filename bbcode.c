@@ -595,3 +595,13 @@ int printhtmlurl(px *x, bbcode *bb)
 	return n;
 }
 
+void bbcode_doc_destroy(bbcode_doc *doc)
+{
+	int i;
+
+	for(i = 0; i < doc->len; i++)
+		free(doc->els[i]);
+
+	free(doc->src);
+	free(doc);
+}
