@@ -62,9 +62,10 @@ Registered tag names are divided into the following types:
  * Content tags ([code], [img], [youtube])
  * Delimiter tags ([*])
 
-Unmatched start and stop tags are printed verbatim.
-Content tags alter how the source text between the tags is treated.
-The [*] tag only has effect if the first block-level ancestor is a [list]; it is otherwise printed verbatim.
+Unmatched start and stop tags are printed verbatim. Content tags
+alter how the source text between the tags is treated. The [*] tag
+only has effect if the first block-level ancestor is a [list]; it is
+otherwise printed verbatim.
 
 Inline-level tags can overlap with each other
 
@@ -96,9 +97,20 @@ Operation
 
 The parser maintains a list of parsed tags and text content.
 
-Any start tag is stored in the list immediately. When encountering stop tags the parser will attempt to find a previous matching start tag, and if found, it will set the `match` member of the two tags to 1. Start tags with `match` set to 1 can no longer be matched to any stop tags. Block-level stop tags can only be matched to block-level start tags in the same nesting (ignoring unviable unmatched block-level tags).
+Any start tag is stored in the list immediately. When encountering
+stop tags the parser will attempt to find a previous matching start
+tag, and if found, it will set the `match` member of the two tags to
+each other. Start tags with `match` set can no longer be matched to
+any stop tags. Block-level stop tags can only be matched to
+block-level start tags in the same nesting (ignoring unviable
+unmatched block-level tags). When a match for content type tags are
+found, all the tags and text content between them are removed from the
+list and their matches set to unmatched.
 
-The printer maintains a doubly-linked lists of printed inline-level start tags and 'unwinds' and 'rewinds' it as needed to emulate overlapping formatting. It prints the source of unmatched tags verbatim.
+The printer maintains a doubly-linked lists of printed inline-level
+start tags and 'unwinds' and 'rewinds' it as needed to emulate
+overlapping formatting. It prints the source of unmatched tags
+verbatim.
 
 TODO
 ----
