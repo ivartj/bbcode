@@ -5,25 +5,31 @@
 #include <stdio.h>
 #include "bbcode.h"
 
-char *filename;
-FILE *file;
-bbcode_doc *m;
+char *filename = NULL;
+FILE *file = NULL;
+char *outfile = NULL;
+FILE *out = NULL;
+bbcode_doc *m = NULL;
 
 void usage(FILE *out)
 {
-	fprintf(out, "Usage: markup [ -h ] [ <markup-file> ]\n");
+	fprintf(out, "Usage: markup [ <output-HTML-file> ] [ -h ] [ <input-BBCode-file> ]\n");
 }
 
 void parseargs(int argc, char *argv[])
 {
 	int c;
 	static struct option longopts[] = {
+		{ "out", required_argument, 0, 'o' },
 		{ "help", no_argument, 0, 'h' },
 		{ 0, 0, 0, 0 },
 	};
 
-	while((c = getopt_long(argc, argv, "h", longopts, NULL)) != -1)
+	while((c = getopt_long(argc, argv, "ho:", longopts, NULL)) != -1)
 	switch(c) {
+	case 'o':
+		outfile = optarg;
+		break;
 	case 'h':
 		usage(stdout);
 		exit(EXIT_SUCCESS);
@@ -48,16 +54,24 @@ void parseargs(int argc, char *argv[])
 
 void openfile(void)
 {
-	if(filename == NULL) {
+	if(filename != NULL) {
+		file = fopen(filename, "r");
+		if(file == NULL) {
+			fprintf(stderr, "Failed to open file: %s.\n", strerror(errno));
+			exit(EXIT_FAILURE);
+		}
+	} else
 		file = stdin;
-		return;
-	}
 
-	file = fopen(filename, "r");
-	if(file == NULL) {
-		fprintf(stderr, "Failed to open file: %s.\n", strerror(errno));
-		exit(EXIT_FAILURE);
-	}
+	if(outfile != NULL) {
+		out = fopen(outfile, "w");
+		if(out == NULL) {
+			fprintf(stderr, "Failed to open file for writing: %s.\n", strerror(errno));
+			exit(EXIT_FAILURE);
+		}
+	} else
+		out = stdout;
+
 }
 
 void closefile(void)
@@ -76,7 +90,7 @@ void parse(void)
 
 void print(void)
 {
-	bbcode_print(m, bbcode_fwrite, stdout);
+	bbcode_print(m, bbcode_fwrite, out);
 }
 
 int main(int argc, char *argv[])
