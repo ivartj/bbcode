@@ -652,7 +652,7 @@ int printhtmlcode(px *x, bbcode *bb)
 
 	n += xprintf(x, "<pre><code>");
 	n += htmlescape(x, x->doc->src + start, end - start, 0);
-	n += xprintf(x, "</pre></code>");
+	n += xprintf(x, "</code></pre>");
 
 	return n;
 }

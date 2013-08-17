@@ -106,3 +106,6 @@ TODO
 Relativley complicated tasks include:
 
  * Lists
+
+ * Ensure that XSS is not possible with stuff like [url=javascript:alert('hello')] from untrusted users
+
