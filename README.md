@@ -1,29 +1,29 @@
 bbcode (unfinished)
 ======
 
-C implementation of the BBCode markup used on many web forums. It only produces HTML.
+C implementation of the BBCode markup used on many web forums. It
+reads BBCode markup code and produces HTML.
+
 
 Installation
 ------------
 
-    $ git clone https://github.com/ivartj/bbcode
-    $ cd bbcode
-    $ autoreconf --install
-    $ ./configure
-    $ make all install clean
+    git clone https://github.com/ivartj/bbcode
+    cd bbcode
+    autoreconf --install
+    ./configure
+    make all install clean
+
 
 Usage
 -----
 
-    $ ed
-    i
-    This is [i]BBCode[/i].
-    .
-    wq file.txt
-    $ bbcode file.txt
-    This is <em>BBCode</em>.<br />
+    bbcode [ -o <output-HTML-file> ] [ <input-BBCode-file> ]
 
-It also reads standard input if no file is given.
+If no output file is given, it writes to standard output.
+
+If no input file is given, it reads from standard input.
+
 
 Why?
 ----
@@ -31,6 +31,17 @@ Why?
  * Nostalgia
  * It's a programming exercise
  * Markdown isn't any good for poetry (without adjustments)
+
+
+TODO
+----
+
+Relativley complicated tasks include:
+
+ * Lists
+
+ * Ensure that XSS is not possible with stuff like [url=javascript:alert('hello')] from untrusted users
+
 
 Spec
 ----
@@ -111,13 +122,3 @@ The printer maintains a doubly-linked lists of printed inline-level
 start tags and 'unwinds' and 'rewinds' it as needed to emulate
 overlapping formatting. It prints the source of unmatched tags
 verbatim.
-
-TODO
-----
-
-Relativley complicated tasks include:
-
- * Lists
-
- * Ensure that XSS is not possible with stuff like [url=javascript:alert('hello')] from untrusted users
-
