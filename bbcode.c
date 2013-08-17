@@ -28,7 +28,7 @@ struct _bbcode_doc {
 struct _bbcode {
 	bbcode_type *type;
 	int stop;
-	int match;
+	bbcode *match;
 	size_t srcoff;
 	size_t srclen;
 	size_t paramoff;
@@ -76,9 +76,11 @@ static void addtag(bbcode_doc *doc, bbcode *bb);
 static void addtext(bbcode_doc *doc, char *text, size_t len);
 static bbcode *parsetag(rx *x, char *text, size_t len);
 static void findmatch(bbcode_doc *doc, bbcode *bb);
+static int htmlescape(px *x, const char *text, size_t len, int newlines);
 static int printhtmltext(px *x, bbcode *bb);
 static int printhtmltag(px *x, bbcode *bb);
 static int printhtmlimg(px *x, bbcode *bb);
+static int printhtmlcode(px *x, bbcode *bb);
 static int printhtmlurl(px *x, bbcode *bb);
 static int printbb(px *x, bbcode *bb);
 static int xstack(px *x, bbcode *b);
@@ -95,6 +97,7 @@ static int xrewind(px *x);
 #define BBCODE_URL	5
 #define BBCODE_QUOTE	6
 #define BBCODE_IMG	7
+#define BBCODE_CODE	8
 
 static bbcode_type bbtypes[] = {
 	[BBCODE_TEXT]	= { NULL, 0, BBCODE_CONTENT, printhtmltext, NULL },
@@ -105,6 +108,7 @@ static bbcode_type bbtypes[] = {
 	[BBCODE_URL]	= { STRING("url"), BBCODE_INLINE, printhtmlurl, NULL },
 	[BBCODE_QUOTE]	= { STRING("quote"), BBCODE_BLOCK, printhtmltag, "blockquote" },
 	[BBCODE_IMG]	= { STRING("img"), BBCODE_CONTENT, printhtmlimg, NULL },
+	[BBCODE_CODE]	= { STRING("code"), BBCODE_CONTENT, printhtmlcode, NULL },
 };
 
 size_t bbcode_fwrite(void *ptr, size_t size, size_t nitems, void *stream)
@@ -237,27 +241,59 @@ void addtag(bbcode_doc *doc, bbcode *bb)
 	addbb(doc, bb);
 }
 
-// TODO: Deal with block nesting level
 void findmatch(bbcode_doc *doc, bbcode *bb)
 {
 	int i;
 	bbcode *cand;
+	int block;
+	int nesting;
+
+	block = 0;
+
+	if(bb->type->type == BBCODE_BLOCK) {
+		block = 1;
+		nesting = 0;
+	}
 
 	for(i = doc->len - 1; i >= 0; i--) {
 		cand = doc->els[i];
+
+		if(block && cand->type->type == BBCODE_BLOCK && cand->match) {
+			if(cand->stop)
+				nesting++;
+			if(!cand->stop)
+				nesting--;
+			if(nesting < 0)
+				return;
+		}
+
 		if(cand->stop)
 			continue;
 		if(cand->type != bb->type)
 			continue;
 		if(cand->match)
 			continue;
+		if(block && nesting != 0)
+			continue;
 		break;
 	}
 	if(i == -1)
 		return;
 
-	bb->match = 1;
-	cand->match = 1;
+	bb->match = cand;
+	cand->match = bb;
+
+	if(bb->type->type == BBCODE_CONTENT)
+	for(i = doc->len - 1; i >= 0; i--) {
+		cand = doc->els[i];
+		if(cand == bb->match)
+			break;
+		if(cand->match)
+			cand->match->match = NULL;
+		free(cand);
+		doc->len--;
+	
+	}
 }
 
 void addtext(bbcode_doc *doc, char *text, size_t len)
@@ -265,7 +301,7 @@ void addtext(bbcode_doc *doc, char *text, size_t len)
 	bbcode *bb;
 
 	bb = calloc(1, sizeof(bbcode));
-	bb->type = BBCODE_TEXT;
+	bb->type = &(bbtypes[BBCODE_TEXT]);
 	bb->srcoff = text - doc->src;
 	bb->srclen = len;
 
@@ -387,21 +423,22 @@ int printstop(px *x, bbcode *bb)
 	return n;
 }
 
-int printhtmltext(px *x, bbcode *bb)
+int htmlescape(px *x, const char *text, size_t len, int newlines)
 {
 	int i;
 	char c;
 	int n;
-	char *src;
 
 	n = 0;
-	src = x->doc->src + bb->srcoff;
 
-	for(i = 0; i < bb->srclen; i++) {
-		c = src[i];
+	for(i = 0; i < len; i++) {
+		c = text[i];
 		switch(c) {
 		case '\n':
-			n += xprintf(x, "<br />\n");
+			if(newlines)
+				n += xprintf(x, "<br />\n");
+			else
+				n += xputc(x, c);
 			break;
 		case '&':
 			n += xprintf(x, "&amp;");
@@ -416,6 +453,16 @@ int printhtmltext(px *x, bbcode *bb)
 			n += xputc(x, c);
 		}
 	}
+
+	return n;
+}
+
+int printhtmltext(px *x, bbcode *bb)
+{
+	char *src;
+
+	src = x->doc->src + bb->srcoff;
+	return htmlescape(x, src, bb->srclen, 1);
 }
 
 int printhtmltag(px *x, bbcode *bb)
@@ -433,7 +480,22 @@ int printhtmltag(px *x, bbcode *bb)
 
 int printhtmlimg(px *x, bbcode *bb)
 {
-	return 0;
+	int n;
+	size_t src;
+	size_t len;
+
+	if(bb->stop)
+		return 0;
+
+	src = bb->srcoff + bb->type->namelen + 2;
+	len = bb->match->srcoff - src;
+	
+
+	n = 0;
+	n += xprintf(x, "<img alt=\"\" src=\"");
+	n += printhtmlattribute(x, x->doc->src + src, len);
+	n += xprintf(x, "\" />");
+	return n;
 }
 
 int xstack(px *x, bbcode *bb)
@@ -572,6 +634,25 @@ int printhtmlattribute(px *x, char *text, size_t len)
 			n + xputc(x, c);
 		}
 	}
+
+	return n;
+}
+
+int printhtmlcode(px *x, bbcode *bb)
+{
+	size_t start, end;
+	int n;
+
+	n = 0;
+	if(bb->stop)
+		return 0;
+
+	start = bb->srcoff + bb->type->namelen + 2;
+	end = bb->match->srcoff;
+
+	n += xprintf(x, "<pre><code>");
+	n += htmlescape(x, x->doc->src + start, end - start, 0);
+	n += xprintf(x, "</pre></code>");
 
 	return n;
 }

@@ -106,7 +106,3 @@ TODO
 Relativley complicated tasks include:
 
  * Lists
-
- * Content tags
-
- * Ensure block nesting
