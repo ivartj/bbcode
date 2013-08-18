@@ -2,7 +2,11 @@ bbcode (unfinished)
 ======
 
 C implementation of the BBCode markup used on many web forums. It
-reads BBCode markup code and produces HTML.
+reads BBCode markup code and produces HTML. Unlike many other BBCode
+implementations, this one uses a different approach in that it does
+not use Regexp string replacing functions, and maintains a hierarchy
+of the written HTML tags even if it is supplied with non-hierarchical
+BBCode.
 
 
 Installation
