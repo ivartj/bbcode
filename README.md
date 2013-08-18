@@ -39,16 +39,6 @@ Relativley complicated tasks include:
    [url=javascript:alert('hello')] from untrusted users
 
 
-Why?
-----
-
- * Nostalgia
- * It's a programming exercise
- * Markdown isn't any good for poetry (without adjustments)
-
-I am using it to write my homepage at [ivartj.org](http://ivartj.org/).
-
-
 Spec
 ----
 
@@ -128,3 +118,13 @@ The printer maintains a doubly-linked lists of printed inline-level
 start tags and 'unwinds' and 'rewinds' it as needed to emulate
 overlapping formatting. It prints the source of unmatched tags
 verbatim.
+
+
+Why?
+----
+
+ * Nostalgia
+ * It's a programming exercise
+ * Markdown isn't any good for poetry (without adjustments)
+
+I am using it to write my homepage at [ivartj.org](http://ivartj.org/).

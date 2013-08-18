@@ -1,0 +1,44 @@
+.TH bbcode 1
+.SH NAME
+bbcode \- BBCode markup language to HTML tool.
+.
+.SH SYNOPSIS
+.B bbcode [-o
+.IB output-file ]
+.BI [ input-file ]
+.
+.SH DESCRIPTION
+.B bbcode
+takes as input BBCode markup, from a specified
+.I input-file
+or from standard input, and writes it as HTML code to an
+.I output-file
+or to standard output.
+.P
+The HTML output is not a complete HTML document but can be placed into
+a template HTML file.
+.SH OPTIONS
+.TP
+.B "-h"
+Print basic help message.
+.TP
+.BI "-o " output-file
+Specifies the output file.
+If not given, 
+.B bbcode
+will write to
+.BR stdout .
+.
+.SH BUGS
+As of 18th August 2013 
+.B bbcode
+does not implement all features that is expected from a BBCode
+implementation.
+Unimplemented features include lists
+.RB ( [list] ", " [*] )
+and giving the author of a quotation with
+.BI [quote= author ].
+.P
+It has not been thoroughly security audited for untrusted input, and cross-site scripting (XSS) attacks are known to be possible.
+.SH AUTHOR
+Ivar Trygve Jarlsby <ivar.jarlsby@gmail.com>

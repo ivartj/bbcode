@@ -15,3 +15,5 @@ include_HEADERS = bbcode.h
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = bbcode.pc
+
+dist_man1_MANS = bbcode.1
