@@ -25,6 +25,16 @@ If no output file is given, it writes to standard output.
 If no input file is given, it reads from standard input.
 
 
+TODO
+----
+
+Relativley complicated tasks include:
+
+ * Lists
+ * Ensure that XSS is not possible with stuff like
+   [url=javascript:alert('hello')] from untrusted users
+
+
 Why?
 ----
 
@@ -32,15 +42,7 @@ Why?
  * It's a programming exercise
  * Markdown isn't any good for poetry (without adjustments)
 
-
-TODO
-----
-
-Relativley complicated tasks include:
-
- * Lists
-
- * Ensure that XSS is not possible with stuff like [url=javascript:alert('hello')] from untrusted users
+I am using it to write my homepage at [ivartj.org](http://ivartj.org/).
 
 
 Spec
