@@ -82,6 +82,8 @@ static int printhtmltag(px *x, bbcode *bb);
 static int printhtmlimg(px *x, bbcode *bb);
 static int printhtmlcode(px *x, bbcode *bb);
 static int printhtmlurl(px *x, bbcode *bb);
+static int printhtmlclass(px *x, bbcode *bb);
+static int printhtmlalign(px *x, bbcode *bb);
 static int printbb(px *x, bbcode *bb);
 static int xstack(px *x, bbcode *b);
 static int xuntangle(px *x, bbcode *b);
@@ -89,26 +91,20 @@ static int ismatch(bbcode *start, bbcode *stop);
 static int xunwind(px *x);
 static int xrewind(px *x);
 
-#define BBCODE_TEXT	0
-#define BBCODE_B	1
-#define BBCODE_I	2
-#define BBCODE_U	3
-#define BBCODE_S	4
-#define BBCODE_URL	5
-#define BBCODE_QUOTE	6
-#define BBCODE_IMG	7
-#define BBCODE_CODE	8
-
 static bbcode_type bbtypes[] = {
-	[BBCODE_TEXT]	= { NULL, 0, BBCODE_CONTENT, printhtmltext, NULL },
-	[BBCODE_B]	= { STRING("b"), BBCODE_INLINE, printhtmltag, "strong" },
-	[BBCODE_I]	= { STRING("i"), BBCODE_INLINE, printhtmltag, "em" },
-	[BBCODE_U]	= { STRING("u"), BBCODE_INLINE, printhtmltag, "u" },
-	[BBCODE_S]	= { STRING("s"), BBCODE_INLINE, printhtmltag, "stroke" },
-	[BBCODE_URL]	= { STRING("url"), BBCODE_INLINE, printhtmlurl, NULL },
-	[BBCODE_QUOTE]	= { STRING("quote"), BBCODE_BLOCK, printhtmltag, "blockquote" },
-	[BBCODE_IMG]	= { STRING("img"), BBCODE_CONTENT, printhtmlimg, NULL },
-	[BBCODE_CODE]	= { STRING("code"), BBCODE_CONTENT, printhtmlcode, NULL },
+	{ NULL, 0, BBCODE_CONTENT, printhtmltext, NULL },
+	{ STRING("b"), BBCODE_INLINE, printhtmltag, "strong" },
+	{ STRING("i"), BBCODE_INLINE, printhtmltag, "em" },
+	{ STRING("u"), BBCODE_INLINE, printhtmltag, "u" },
+	{ STRING("s"), BBCODE_INLINE, printhtmltag, "stroke" },
+	{ STRING("url"), BBCODE_INLINE, printhtmlurl, NULL },
+	{ STRING("quote"), BBCODE_BLOCK, printhtmltag, "blockquote" },
+	{ STRING("img"), BBCODE_CONTENT, printhtmlimg, NULL },
+	{ STRING("code"), BBCODE_CONTENT, printhtmlcode, NULL },
+	{ STRING("left"), BBCODE_BLOCK, printhtmlclass, "left" },
+	{ STRING("center"), BBCODE_BLOCK, printhtmlclass, "center" },
+	{ STRING("right"), BBCODE_BLOCK, printhtmlclass, "right" },
+	{ STRING("align"), BBCODE_BLOCK, printhtmlalign, NULL },
 };
 
 size_t bbcode_fwrite(void *ptr, size_t size, size_t nitems, void *stream)
@@ -301,7 +297,7 @@ void addtext(bbcode_doc *doc, char *text, size_t len)
 	bbcode *bb;
 
 	bb = calloc(1, sizeof(bbcode));
-	bb->type = &(bbtypes[BBCODE_TEXT]);
+	bb->type = &(bbtypes[0]);
 	bb->srcoff = text - doc->src;
 	bb->srclen = len;
 
@@ -686,4 +682,67 @@ void bbcode_doc_destroy(bbcode_doc *doc)
 	free(doc->els);
 	free(doc->src);
 	free(doc);
+}
+
+int printhtmlclass(px *x, bbcode *bb)
+{
+	if(!bb->stop)
+		return xprintf(x, "<div class=\"%s\">", bb->type->printdata);
+	else
+		return xprintf(x, "</div>");
+}
+
+int printhtmlalign(px *x, bbcode *bb)
+{
+	enum {
+		none,
+		center,
+		left,
+		right,
+	} align;
+
+	char *param;
+	size_t paramlen;
+
+	align = none;
+
+	if(bb->stop) {
+		param = x->doc->src + bb->match->paramoff;
+		paramlen = bb->match->paramlen;
+	} else {
+		param = x->doc->src + bb->paramoff;
+		paramlen = bb->paramlen;
+	}
+
+	if(align == none)
+	if(paramlen == LENGTH("left") - 1)
+	if(strncmp(param, "left", paramlen) == 0)
+		align = left;
+
+	if(align == none)
+	if(paramlen == LENGTH("center") - 1)
+	if(strncmp(param, "center", paramlen) == 0)
+		align = center;
+
+	if(align == none)
+	if(paramlen == LENGTH("right") - 1)
+	if(strncmp(param, "right", paramlen) == 0)
+		align = right;
+
+	if(align == none)
+		return printhtmltext(x, bb);
+
+	if(bb->stop)
+		return xprintf(x, "</div>");
+
+	switch(align) {
+	case left:
+		return xprintf(x, "<div class=\"left\">");
+	case center:
+		return xprintf(x, "<div class=\"center\">");
+	case right:
+		return xprintf(x, "<div class=\"right\">");
+	}
+
+	return 0; /* should not be reached */
 }

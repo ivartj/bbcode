@@ -28,6 +28,9 @@ If no output file is given, it writes to standard output.
 
 If no input file is given, it reads from standard input.
 
+For use of the `[align=]`, `[left]`, `[center]` and `[right]` tags,
+bbcode expects that that CSS style rules are defined for the `left`,
+`center` and `right` HTML classes.
 
 TODO
 ----

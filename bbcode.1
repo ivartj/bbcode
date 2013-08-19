@@ -13,10 +13,16 @@ takes as input BBCode markup, from a specified
 .I input-file
 or from standard input, and writes it as HTML code to an
 .I output-file
-or to standard output.
+or to
+.B stdout.
 .P
 The HTML output is not a complete HTML document but can be placed into
 a template HTML file.
+.P
+The HTML output for the 
+.BR "[align=]" ", " "[left]" ", " "[center]" " and " "[right]"
+tags expects CSS style rules to be defined for the
+.BR align ", " center " and " right " HTML classes."
 .SH OPTIONS
 .TP
 .B "-h"
