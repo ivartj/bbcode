@@ -101,9 +101,9 @@ static bbcode_type bbtypes[] = {
 	{ STRING("quote"), BBCODE_BLOCK, printhtmltag, "blockquote" },
 	{ STRING("img"), BBCODE_CONTENT, printhtmlimg, NULL },
 	{ STRING("code"), BBCODE_CONTENT, printhtmlcode, NULL },
-	{ STRING("left"), BBCODE_BLOCK, printhtmlclass, "left" },
-	{ STRING("center"), BBCODE_BLOCK, printhtmlclass, "center" },
-	{ STRING("right"), BBCODE_BLOCK, printhtmlclass, "right" },
+	{ STRING("left"), BBCODE_BLOCK, printhtmlclass, "bbcode-left" },
+	{ STRING("center"), BBCODE_BLOCK, printhtmlclass, "bbcode-center" },
+	{ STRING("right"), BBCODE_BLOCK, printhtmlclass, "bbcode-right" },
 	{ STRING("align"), BBCODE_BLOCK, printhtmlalign, NULL },
 };
 
@@ -737,11 +737,11 @@ int printhtmlalign(px *x, bbcode *bb)
 
 	switch(align) {
 	case left:
-		return xprintf(x, "<div class=\"left\">");
+		return xprintf(x, "<div class=\"bbcode-left\">");
 	case center:
-		return xprintf(x, "<div class=\"center\">");
+		return xprintf(x, "<div class=\"bbcode-center\">");
 	case right:
-		return xprintf(x, "<div class=\"right\">");
+		return xprintf(x, "<div class=\"bbcode-right\">");
 	}
 
 	return 0; /* should not be reached */
