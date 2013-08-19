@@ -13,7 +13,7 @@ bbcode_doc *m = NULL;
 
 void usage(FILE *out)
 {
-	fprintf(out, "Usage: markup [ <output-HTML-file> ] [ -h ] [ <input-BBCode-file> ]\n");
+	fprintf(out, "usage: bbcode [ -o <output-file> ] [ <input-file> ]\n");
 }
 
 void parseargs(int argc, char *argv[])
