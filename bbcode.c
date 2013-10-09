@@ -73,7 +73,7 @@ static void parsebb(rx *x);
 static int printhtml(px *x);
 static void addbb(bbcode_doc *doc, bbcode *bb);
 static void addtag(bbcode_doc *doc, bbcode *bb);
-static void addtext(bbcode_doc *doc, char *text, size_t len);
+static void addtext(bbcode_doc *doc, char *text, size_t len, int blockprev, int blocknext);
 static bbcode *parsetag(rx *x, char *text, size_t len);
 static void findmatch(bbcode_doc *doc, bbcode *bb);
 static int htmlescape(px *x, const char *text, size_t len, int newlines);
@@ -188,6 +188,7 @@ void parsebb(rx *x)
 	int ti;
 	bbcode *bb;
 	int i;
+	int blocknext = 0, blockprev = 0;
 
 	ti = -1;
 	i = 0;
@@ -203,13 +204,15 @@ void parsebb(rx *x)
 		bb = parsetag(x, x->buf + ti, x->len - ti);
 		if(bb == NULL)
 			break;
-		addtext(x->doc, x->buf + i, ti - i);
+		blocknext = bb->type->type == BBCODE_BLOCK;
+		addtext(x->doc, x->buf + i, ti - i, blockprev, blocknext);
 		addtag(x->doc, bb);
+		blockprev = blocknext;
 		i = x->len;
 		break;
 	}
 
-	addtext(x->doc, x->buf + i, x->len - i);
+	addtext(x->doc, x->buf + i, x->len - i, blockprev, 0);
 }
 
 void addbb(bbcode_doc *doc, bbcode *bb)
@@ -243,6 +246,7 @@ void findmatch(bbcode_doc *doc, bbcode *bb)
 	bbcode *cand;
 	int block;
 	int nesting;
+	bbcode *text;
 
 	block = 0;
 
@@ -292,9 +296,33 @@ void findmatch(bbcode_doc *doc, bbcode *bb)
 	}
 }
 
-void addtext(bbcode_doc *doc, char *text, size_t len)
+void addtext(bbcode_doc *doc, char *text, size_t len, int blockprev, int blocknext)
 {
 	bbcode *bb;
+	int i;
+	int shave;
+
+	shave = 0;
+	if(blockprev)
+	for(i = 0; i < len; i++) {
+		if(isspace(text[i])) {
+			if(text[i] == '\n')
+				shave = i + 1;
+		} else
+			break;
+	}
+	text += shave;
+	len -= shave;
+
+	if(blocknext)
+	for(i = len - 1; i >= 0; i--) {
+		if(isspace(text[i])) {
+			if(text[i] == '\n') {
+				len = i;
+			}
+		} else
+			break;
+	}
 
 	bb = calloc(1, sizeof(bbcode));
 	bb->type = &(bbtypes[0]);
@@ -330,7 +358,7 @@ bbcode *parsetag(rx *x, char *text, size_t len)
 		type = &(bbtypes[i]);
 		if(type->namelen > namelen)
 			continue;
-		if(strncmp(type->name, name, type->namelen) != 0)
+		if(istrncmp(type->name, name, type->namelen) != 0)
 			continue;
 		if(namelen == type->namelen)
 			break;
@@ -716,17 +744,17 @@ int printhtmlalign(px *x, bbcode *bb)
 
 	if(align == none)
 	if(paramlen == LENGTH("left") - 1)
-	if(strncmp(param, "left", paramlen) == 0)
+	if(istrncmp(param, "left", paramlen) == 0)
 		align = left;
 
 	if(align == none)
 	if(paramlen == LENGTH("center") - 1)
-	if(strncmp(param, "center", paramlen) == 0)
+	if(istrncmp(param, "center", paramlen) == 0)
 		align = center;
 
 	if(align == none)
 	if(paramlen == LENGTH("right") - 1)
-	if(strncmp(param, "right", paramlen) == 0)
+	if(istrncmp(param, "right", paramlen) == 0)
 		align = right;
 
 	if(align == none)
@@ -745,4 +773,23 @@ int printhtmlalign(px *x, bbcode *bb)
 	}
 
 	return 0; /* should not be reached */
+}
+
+int istrncmp(const char *a, const char *b, size_t len)
+{
+	int i;
+	int ac, bc;
+
+	for(i = 0; i < len; i++) {
+		ac = a[i];
+		bc = b[i];
+		if(isupper(ac))
+			ac -= 'A' - 'a';
+		if(isupper(bc))
+			bc -= 'A' - 'a';
+		if(ac == '\0' || bc == '\0' || ac != bc)
+			return a[i] - b[i];
+		
+	}
+	return 0;
 }

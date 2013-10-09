@@ -1,4 +1,4 @@
-AC_INIT([bbcode], [0.01], [ivar.jarlsby@gmail.com])
+AC_INIT([bbcode], [0.02], [ivar.jarlsby@gmail.com])
 AC_CONFIG_AUX_DIR([m4])
 AC_CONFIG_MACRO_DIR([m4])
 
