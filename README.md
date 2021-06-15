@@ -12,6 +12,8 @@ BBCode.
 Installation
 ------------
 
+Requires (at least) autoconf, automake and libtool.
+
     git clone https://github.com/ivartj/bbcode
     cd bbcode
     autoreconf --install
