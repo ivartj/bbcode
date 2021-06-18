@@ -58,6 +58,7 @@ struct _px {
 	void *data;
 	dlist *first;
 	dlist *last;
+	char *rootpath;
 };
 
 struct _dlist {
@@ -84,6 +85,7 @@ static int printhtmlcode(px *x, bbcode *bb);
 static int printhtmlurl(px *x, bbcode *bb);
 static int printhtmlclass(px *x, bbcode *bb);
 static int printhtmlalign(px *x, bbcode *bb);
+static int printhtmlattribute(px *x, char *text, size_t len);
 static int printbb(px *x, bbcode *bb);
 static int xstack(px *x, bbcode *b);
 static int xuntangle(px *x, bbcode *b);
@@ -387,7 +389,11 @@ bbcode *parsetag(rx *x, char *text, size_t len)
 	return bb;
 }
 
-int bbcode_print(bbcode_doc *doc, size_t (*write)(void *, size_t, size_t, void*), void *data)
+int bbcode_print(
+	bbcode_doc *doc,
+	size_t (*write)(void *, size_t, size_t, void*),
+	void *data,
+	char *rootpath)
 {
 	px x = { 0 };
 	int n;
@@ -395,6 +401,7 @@ int bbcode_print(bbcode_doc *doc, size_t (*write)(void *, size_t, size_t, void*)
 	x.write = write;
 	x.data = data;
 	x.doc = doc;
+	x.rootpath = rootpath;
 
 	n = printhtml(&x);
 
@@ -513,10 +520,13 @@ int printhtmlimg(px *x, bbcode *bb)
 
 	src = bb->srcoff + bb->type->namelen + 2;
 	len = bb->match->srcoff - src;
-	
+	const char *url = x->doc->src + src;
 
 	n = 0;
 	n += xprintf(x, "<img alt=\"\" src=\"");
+	if(x->rootpath != NULL && len != 0 && url[0] == '/') {
+		n += printhtmlattribute(x, x->rootpath, strlen(x->rootpath));
+	}
 	n += printhtmlattribute(x, x->doc->src + src, len);
 	n += xprintf(x, "\" />");
 	return n;
@@ -693,8 +703,14 @@ int printhtmlurl(px *x, bbcode *bb)
 
 	n = 0;
 
+	const char *url = x->doc->src + bb->paramoff;
+	size_t urllen = bb->paramlen;
+
 	n += xprintf(x, "<a href=\"");
-	n += printhtmlattribute(x, x->doc->src + bb->paramoff, bb->paramlen);
+	if(x->rootpath != NULL && url[0] == '/') {
+		n += printhtmlattribute(x, x->rootpath, strlen(x->rootpath));
+	}
+	n += printhtmlattribute(x, url, urllen);
 	n += xprintf(x, "\">");
 
 	return n;

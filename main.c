@@ -10,6 +10,7 @@ FILE *file = NULL;
 char *outfile = NULL;
 FILE *out = NULL;
 bbcode_doc *m = NULL;
+char *rootpath = NULL;
 
 void usage(FILE *out)
 {
@@ -22,13 +23,17 @@ void parseargs(int argc, char *argv[])
 	static struct option longopts[] = {
 		{ "out", required_argument, 0, 'o' },
 		{ "help", no_argument, 0, 'h' },
+		{ "root-path", required_argument, NULL, 'r' }, 
 		{ 0, 0, 0, 0 },
 	};
 
-	while((c = getopt_long(argc, argv, "ho:", longopts, NULL)) != -1)
+	while((c = getopt_long(argc, argv, "ho:r:", longopts, NULL)) != -1)
 	switch(c) {
 	case 'o':
 		outfile = optarg;
+		break;
+	case 'r':
+		rootpath = optarg;
 		break;
 	case 'h':
 		usage(stdout);
@@ -90,7 +95,7 @@ void parse(void)
 
 void print(void)
 {
-	bbcode_print(m, bbcode_fwrite, out);
+	bbcode_print(m, bbcode_fwrite, out, rootpath);
 }
 
 int main(int argc, char *argv[])
