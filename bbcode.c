@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <assert.h>
+#include <string.h>
+#include <ctype.h>
 
 #define BBCODE_INLINE	1
 #define BBCODE_BLOCK	2
@@ -92,6 +94,7 @@ static int xuntangle(px *x, bbcode *b);
 static int ismatch(bbcode *start, bbcode *stop);
 static int xunwind(px *x);
 static int xrewind(px *x);
+int istrncmp(const char *a, const char *b, size_t len);
 
 static bbcode_type bbtypes[] = {
 	{ NULL, 0, BBCODE_CONTENT, printhtmltext, NULL },
